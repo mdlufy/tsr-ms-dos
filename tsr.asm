@@ -5,7 +5,6 @@ code segment	'code'
 	
 	jmp _initTSR
 	
-	; данные
 	ignoredChars 					DB	'хцчшщ[wxio'	; список игнорируемых символов
 	ignoredLength 				equ	$-ignoredChars				; длина строки ignoredChars
 	ignoreEnabled 				DB	0							; флаг функции игнорирования ввода
@@ -206,7 +205,7 @@ code segment	'code'
 		ret
 	changeFx endp
 	
-    ;новый обработчик
+    ;	новый обработчик
     new_int9h proc far
 		; сохраняем значения всех, изменяемых регистров в стэке
 		push SI
@@ -226,7 +225,7 @@ code segment	'code'
 		in	AL, 60h	; записываем в AL скан-код нажатой клавиши
 		
 		
-		;проверка F1-F4
+		;	проверка F1-F4
 		_test_Fx:
 		sub AL, 58 ; в AL теперь номер функциональной клавиши
 		_F1:
@@ -272,13 +271,13 @@ code segment	'code'
 
 	_go:		
 		mov DX, ES:[BX] ; в DX 0 введённый символ
-		;включен ли режим блокировки ввода?
+		;	включен ли режим блокировки ввода?
 		cmp ignoreEnabled, true
 		jne _check_translate
 		
 		; да, включен
 		mov SI, 0
-		mov CX, ignoredLength ;кол-во игнорируемых символов
+		mov CX, ignoredLength ;	кол-во игнорируемых символов
 		
 		; проверяем, присутствует ли текущий символ в списке игнорируемых
 	_check_ignored:
@@ -371,19 +370,19 @@ new_int1Ch endp
 ;===  2) выгрузки TSR из памяти (при AH=0FFh, AL=1)
 ;===     
 new_int2Fh proc
-	cmp	AH, 0FFh	;наша функция?
-	jne	_2Fh_std	;нет - на старый обработчик
-	cmp	AL, 0	;подфункция проверки, загружен ли резидент в память?
+	cmp	AH, 0FFh	
+	jne	_2Fh_std	
+	cmp	AL, 0			;	подфункция проверки, загружен ли резидент в память
 	je	_already_installed
-	cmp	AL, 1	;подфункция выгрузки из памяти?
+	cmp	AL, 1			; подфункция выгрузки из памяти?
 	je	_uninstall	
-	jmp	_2Fh_std	;нет - на старый обработчик
+	jmp	_2Fh_std	; нет - на старый обработчик
 	
 _2Fh_std:
-	jmp	dword ptr CS:[old_int2FhOffset]	;вызов старого обработчика
+	jmp	dword ptr CS:[old_int2FhOffset]		; вызов старого обработчика
 	
 _already_installed:
-		mov	AH, 'i'	;вернём 'i', если резидент загружен	в память
+		mov	AH, 'i'	; вернет 'i', если резидент загружен	в память
 		iret
 	
 _uninstall:
@@ -419,8 +418,8 @@ _uninstall:
 	jc _notRemove
 	
 	push	CS
-	pop	ES	;в ES - адрес резидентной программы
-	mov	AH, 49h  ;выгрузим из памяти резидент
+	pop	ES	;	в ES - адрес резидентной программы
+	mov	AH, 49h  ; выгрузим из памяти резидент
 	int	21h
 	jc _notRemove
 	jmp _unloaded
@@ -472,9 +471,9 @@ printSignature proc
 	xor BX, BX
 	xor DX, DX
 	
-	mov AH, 03h						;чтение текущей позиции курсора
+	mov AH, 03h						;	чтение текущей позиции курсора
 	int 10h
-	push DX							;помещаем информацию о положении курсора в стек
+	push DX							;	помещаем информацию о положении курсора в стек
 	
 	cmp printPos, 0
 	je _printTop
@@ -519,7 +518,7 @@ printSignature proc
 		inc DH
 		
 		
-		;вывод первой линии
+		;	вывод первой линии
 		push DX
 		lea BP, signatureLine1
 		mov CX, Line1_length
@@ -529,7 +528,7 @@ printSignature proc
 		pop DX
 		inc DH
 		
-		;вывод второй линии
+		;	вывод второй линии
 		push DX
 		lea BP, signatureLine2
 		mov CX, Line2_length
@@ -539,7 +538,7 @@ printSignature proc
 		pop DX
 		inc DH
 		
-		;вывод третьей линии
+		;	вывод третьей линии
 		push DX
 		lea BP, signatureLine3
 		mov CX, Line3_length
@@ -549,7 +548,7 @@ printSignature proc
 		pop DX
 		inc DH
 		
-		;вывод 'низа' таблицы
+		;	вывод 'низа' таблицы
 		push DX
 		lea BP, tableBottom
 		mov CX, tableBottom_length
@@ -560,8 +559,8 @@ printSignature proc
 		inc DH
 		
 		xor BX, BX
-		pop DX						;восстанавливаем из стека прежнее положение курсора
-		mov AH, 02h					;меняем положение курсора на первоначальное
+		pop DX						;	восстанавливаем из стека прежнее положение курсора
+		mov AH, 02h					;	меняем положение курсора на первоначальное
 		int 10h
 		call changeFx
 		
@@ -715,11 +714,11 @@ saveFont endp
 
 ;=== Отсюда начинается выполнение основной части программы ===;
 ;===
-_initTSR:                         	; старт резидента
+_initTSR:       ; старт резидента
 	mov AH, 03h
 	int 10h
 	push DX
-	mov AH,00h					; установка видеорежима (83h  текст  80x25  16/8  CGA,EGA  b800  Comp,RGB,Enhanced), без очистки экрана
+	mov AH,00h		; установка видеорежима (83h  текст  80x25  16/8  CGA,EGA  b800  Comp,RGB,Enhanced), без очистки экрана
 	mov AL,83h
 	int 10h
 	pop DX
@@ -728,8 +727,8 @@ _initTSR:                         	; старт резидента
 	
 	
     call commandParamsParser    
-	mov AX,3509h                    ; получить в ES:BX вектор 09
-    int 21h                         ; прерывания
+	mov AX,3509h               ; получить в ES:BX вектор 09
+    int 21h                  ; прерывания
 	
 	; === Удаление резидента из памяти ===
 
@@ -787,11 +786,11 @@ _initTSR:                         	; старт резидента
 	int 21h
 
 	call changeFx
-    mov DX, offset installedMsg         ; выводим что все ок
+    mov DX, offset installedMsg     
     mov AH, 9
     int 21h
     mov DX, offset _initTSR       ; остаемся в памяти резидентом
-    int 27h                         ; и выходим
+    int 27h                         ; и выход
     ; конец основной программы  
 
 _remove: ; выгрузка программы из памяти
@@ -819,21 +818,21 @@ commandParamsParser proc
 	mov unloadTSR, 0
 	mov notLoadTSR, 0
 	
-	mov SI, 80h   				;SI=смещение командной строки.
-	lodsb        					;Получим кол-во символов.
-	or AL, AL     				;Если 0 символов введено, 
-	jz _exitHelp   				;то все в порядке. 
+	mov SI, 80h   				;	SI=смещение командной строки.
+	lodsb        					;	Получим кол-во символов.
+	or AL, AL     				;	Если 0 символов введено, 
+	jz _exitHelp   				;	то все в порядке. 
 
 	_nextChar:
 	
-	inc SI       					;Теперь SI указывает на первый символ строки.
+	inc SI       					;	Теперь SI указывает на первый символ строки.
 	
 	cmp [SI], BYTE ptr 13
 	je _exitHelp
 	
 	
-		lodsw       				;Получаем два символа
-		cmp AX, '?/' 				;Это '/?' (данные расположены в обратном порядк, т.е. AL:AH вместо AH:AL)
+		lodsw       				;	Получаем два символа
+		cmp AX, '?/' 				;	Это '/?' (данные расположены в обратном порядкe, т.е. AL:AH вместо AH:AL)
 		je _question
 		cmp AX, 'u/'
 		je _finishTSR
@@ -852,7 +851,7 @@ commandParamsParser proc
 			int 10h
 			
 		; конец вывода строки помощи
-		not notLoadTSR	        ;флаг того, что необходимо не загружать резидент
+		not notLoadTSR	        ;	флаг того, что необходимо не загружать резидент
 		jmp _nextChar
 	
 	; === Удаление резидента из памяти ===
@@ -870,7 +869,7 @@ commandParamsParser proc
 			mov AX, 1301h
 			int 10h
 
-		;конец вывода строки
+		;	конец вывода строки
 	_exitHelp:
 	ret
 commandParamsParser endp
